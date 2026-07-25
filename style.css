@@ -14,17 +14,114 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-dark);
     line-height: 1.6;
     background-color: #fff;
+    overflow-x: hidden;
+    position: relative;
 }
 
 .container {
     width: 90%;
     max-width: 1200px;
     margin: 0 auto;
+}
+
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.97);
+    display: grid;
+    place-items: center;
+    z-index: 3000;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.spinner {
+    width: 56px;
+    height: 56px;
+    border: 5px solid rgba(0, 51, 102, 0.15);
+    border-top-color: var(--accent-color);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0;
+    background: linear-gradient(90deg, var(--accent-color), #ff8c1a);
+    z-index: 2500;
+}
+
+.back-to-top {
+    position: fixed;
+    right: 1.2rem;
+    bottom: 1.2rem;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent-color);
+    color: white;
+    font-size: 1.3rem;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(255, 102, 0, 0.25);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+    z-index: 2200;
+}
+
+.back-to-top.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.back-to-top:hover {
+    background: #ff8c1a;
+    transform: translateY(-3px) scale(1.05);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes zoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* NAVIGATION */
@@ -36,6 +133,12 @@ body {
     top: 0;
     z-index: 1000;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.navbar.scrolled {
+    background-color: rgba(0, 51, 102, 0.95);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .navbar .container {
@@ -61,14 +164,32 @@ body {
     color: white;
     text-decoration: none;
     font-weight: 500;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, transform 0.3s ease;
+    position: relative;
 }
 
-.nav-menu a:hover {
+.nav-menu a:hover,
+.nav-menu a.active {
     color: var(--accent-color);
+    transform: translateY(-2px);
 }
 
-.cta-btn {
+.nav-menu a.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 2px;
+    background-color: var(--accent-color);
+    border-radius: 999px;
+}
+
+.cta-btn,
+.hero-btn,
+.submit-btn {
+    display: inline-block;
+    text-decoration: none;
     background-color: var(--accent-color);
     color: white;
     border: none;
@@ -76,11 +197,15 @@ body {
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
-    transition: background-color 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
 }
 
-.cta-btn:hover {
+.cta-btn:hover,
+.hero-btn:hover,
+.submit-btn:hover {
     background-color: #ff8c1a;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(255, 102, 0, 0.18);
 }
 
 /* HERO SECTION */
@@ -97,6 +222,10 @@ body {
     text-align: center;
 }
 
+.hero-content {
+    animation: fadeUp 0.8s ease both;
+}
+
 .hero-content h1 {
     font-size: 3rem;
     margin-bottom: 1rem;
@@ -110,19 +239,8 @@ body {
 }
 
 .hero-btn {
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
     padding: 1rem 2.5rem;
     font-size: 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-}
-
-.hero-btn:hover {
-    background-color: #ff8c1a;
 }
 
 /* ABOUT SECTION */
@@ -159,11 +277,13 @@ body {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     text-align: center;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fadeUp 0.8s ease both;
 }
 
 .about-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
 
 .about-card h3 {
@@ -200,11 +320,13 @@ body {
     padding: 2rem;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transition: box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fadeUp 0.8s ease both;
 }
 
 .service-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
 }
 
 .service-card h3 {
@@ -282,11 +404,13 @@ body {
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: zoomIn 0.8s ease both;
 }
 
 .gallery-card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.14);
 }
 
 .gallery-image {
@@ -367,19 +491,8 @@ body {
 }
 
 .submit-btn {
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
     padding: 0.8rem 2rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
     width: 100%;
-}
-
-.submit-btn:hover {
-    background-color: #ff8c1a;
 }
 
 /* FOOTER */

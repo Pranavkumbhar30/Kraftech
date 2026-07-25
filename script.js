@@ -1,16 +1,28 @@
+// LOADING SPINNER
+const loadingOverlay = document.getElementById('loadingOverlay');
+if (loadingOverlay) {
+    window.addEventListener('load', () => {
+        loadingOverlay.classList.add('hidden');
+        document.body.style.opacity = '1';
+    });
+
+    document.body.style.opacity = '0';
+    document.body.style.transition = 'opacity 0.5s ease';
+}
+
 // SMOOTH SCROLLING FOR NAVIGATION LINKS
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
+    anchor.addEventListener('click', function (e) {
         const href = this.getAttribute('href');
-        if (href !== '#') {
-            e.preventDefault();
-            const target = document.querySelector(href);
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
+        if (!href || href === '#') return;
+
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         }
     });
 });
@@ -18,15 +30,14 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // FORM VALIDATION
 const contactForm = document.querySelector('.contact-form form');
 if (contactForm) {
-    contactForm.addEventListener('submit', function(e) {
+    contactForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        
+
         const name = this.querySelector('input[placeholder="Your Name"]').value.trim();
         const email = this.querySelector('input[placeholder="Your Email"]').value.trim();
-        const company = this.querySelector('input[placeholder="Your Company"]').value.trim();
+        const phone = this.querySelector('input[placeholder="Your Phone Number"]').value.trim();
         const message = this.querySelector('textarea').value.trim();
-        
-        // Validation
+
         if (!name) {
             alert('Please enter your name');
             return;
@@ -35,16 +46,15 @@ if (contactForm) {
             alert('Please enter a valid email address');
             return;
         }
-        if (!company) {
-            alert('Please enter your company name');
+        if (!phone) {
+            alert('Please enter your phone number');
             return;
         }
         if (!message) {
             alert('Please enter your message');
             return;
         }
-        
-        // Success message
+
         alert('Thank you for reaching out! We will get back to you soon.');
         this.reset();
     });
@@ -62,7 +72,7 @@ const observerOptions = {
     rootMargin: '0px 0px -50px 0px'
 };
 
-const observer = new IntersectionObserver(function(entries) {
+const observer = new IntersectionObserver(function (entries) {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
             entry.target.style.opacity = '1';
@@ -72,7 +82,7 @@ const observer = new IntersectionObserver(function(entries) {
 }, observerOptions);
 
 // Apply animation to cards
-document.querySelectorAll('.service-card, .about-card, .project-card, .testimonial-card').forEach(card => {
+document.querySelectorAll('.service-card, .about-card, .gallery-card, .testimonial-card').forEach(card => {
     card.style.opacity = '0';
     card.style.transform = 'translateY(20px)';
     card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
@@ -80,69 +90,58 @@ document.querySelectorAll('.service-card, .about-card, .project-card, .testimoni
 });
 
 // ACTIVE NAVIGATION LINK HIGHLIGHTING
-window.addEventListener('scroll', function() {
-    const scrollPosition = window.scrollY;
-    const sections = document.querySelectorAll('section[id]');
-    
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.offsetHeight;
-        
-        if (scrollPosition >= sectionTop - 100 && scrollPosition < sectionTop + sectionHeight) {
-            const navLinks = document.querySelectorAll('.nav-menu a[href^="#"]');
-            navLinks.forEach(link => link.style.color = 'white');
-            
-            const activeLink = document.querySelector(`.nav-menu a[href="#${section.id}"]`);
-            if (activeLink) {
-                activeLink.style.color = '#ff6600';
-            }
-        }
+const navbar = document.querySelector('.navbar');
+const progressBar = document.getElementById('scrollProgress');
+const backToTop = document.getElementById('backToTop');
+const navLinks = Array.from(document.querySelectorAll('.nav-menu a[href^="#"]'));
+const sections = document.querySelectorAll('section[id]');
+
+function updateScrollUI() {
+    const scrollTop = window.scrollY;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = maxScroll > 0 ? (scrollTop / maxScroll) * 100 : 0;
+
+    if (progressBar) {
+        progressBar.style.width = `${Math.min(progress, 100)}%`;
+    }
+
+    if (navbar) {
+        navbar.classList.toggle('scrolled', scrollTop > 40);
+    }
+
+    if (backToTop) {
+        backToTop.classList.toggle('show', scrollTop > 500);
+    }
+}
+
+window.addEventListener('scroll', updateScrollUI, { passive: true });
+updateScrollUI();
+
+if (backToTop) {
+    backToTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-});
+}
+
+if (navLinks.length && sections.length) {
+    const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                navLinks.forEach(link => {
+                    const isActive = link.getAttribute('href') === `#${entry.target.id}`;
+                    link.classList.toggle('active', isActive);
+                });
+            }
+        });
+    }, { threshold: 0.4 });
+
+    sections.forEach(section => sectionObserver.observe(section));
+}
 
 // MOBILE MENU TOGGLE (for future responsive menu)
 function toggleMobileMenu() {
     const navMenu = document.querySelector('.nav-menu');
-    navMenu.classList.toggle('active');
+    if (navMenu) {
+        navMenu.classList.toggle('active');
+    }
 }
-
-// PHONE CALL HANDLER
-document.querySelectorAll('.hero-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const phoneNumber = this.textContent.match(/\d+/g).join('');
-        // On mobile, this would initiate a call
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            window.location.href = `tel:+91${phoneNumber}`;
-        } else {
-            alert('Call: +91 ' + phoneNumber);
-        }
-    });
-});
-
-// COUNTER ANIMATION (for statistics if added)
-function animateCounter(element, target, duration = 2000) {
-    let current = 0;
-    const increment = target / (duration / 16);
-    
-    const counter = setInterval(() => {
-        current += increment;
-        if (current >= target) {
-            element.textContent = target + '+';
-            clearInterval(counter);
-        } else {
-            element.textContent = Math.floor(current);
-        }
-    }, 16);
-}
-
-// PAGE LOAD ANIMATION
-window.addEventListener('load', function() {
-    document.body.style.opacity = '1';
-});
-
-// INITIAL PAGE OPACITY
-document.body.style.opacity = '0';
-document.body.style.transition = 'opacity 0.5s ease';
-setTimeout(() => {
-    document.body.style.opacity = '1';
-}, 100);
